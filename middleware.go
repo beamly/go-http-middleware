@@ -45,9 +45,9 @@ func NewMiddleware(h http.Handler, app string) *Middleware {
 //
 // Log lines are produced as per:
 //   sample-app2017/05/12 11:34:44 middleware.go:67: {"duration":"32.995µs","ip_address":"[::1]:63841","request_id":"dddb1267-166d-46c0-94d4-3f4f2ceed1f7","status":"200","url":"/"}
-// where `sample-app' is the 'app' string passed into NewMiddleware()
+// where `sample-app` is the 'app' string passed into NewMiddleware()
 //
-// These logs are written to STDOUT
+// These logs are written to `STDOUT`
 func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rec := httptest.NewRecorder()
 	requestID := uuid.NewV4().String()

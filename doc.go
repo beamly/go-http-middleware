@@ -36,8 +36,7 @@ A simple implementation would look like:
 
 A request to `localhost:8008` would then log out:
 
-  sample-app2017/05/12 11:45:54 middleware.go:86: {"duration":"56.581µs","ip_address":"[::1]:63985","request_id":"abb0969e-0879-4838-bb5f-3c018f34ab17","status":200,"time":"2017-05-12T12:45:54.1477631+01:
-00","url":"/"}
+  sample-app2017/05/12 11:45:54 middleware.go:86: {"duration":"56.581µs","ip_address":"[::1]:63985","request_id":"abb0969e-0879-4838-bb5f-3c018f34ab17","status":200,"time":"2017-05-12T12:45:54.1477631+01:00","url":"/"}
 
 With the response:
 

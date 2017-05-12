@@ -47,9 +47,7 @@ A simple implementation would look like:
 A request to `localhost:8008` would then log out:
 
 
-	sample-app2017/05/12 11:45:54 middleware.go:86: {"duration":"56.581µs","ip_address":"[::1]:63985","request_id":"abb0969e-0879-4838-bb5f-3c018f34ab17","status":200,"time":"2017-05-12T12:45:54.1477631+01:
-
-00","url":"/"}
+	sample-app2017/05/12 11:45:54 middleware.go:86: {"duration":"56.581µs","ip_address":"[::1]:63985","request_id":"abb0969e-0879-4838-bb5f-3c018f34ab17","status":200,"time":"2017-05-12T12:45:54.1477631+01:00","url":"/"}
 
 With the response:
 
@@ -122,7 +120,7 @@ to wrap and returns mutable Middleware object
 
 
 
-### <a name="Middleware.ServeHTTP">func</a> (\*Middleware) [ServeHTTP](/src/target/middleware.go?s=1526:1596#L41)
+### <a name="Middleware.ServeHTTP">func</a> (\*Middleware) [ServeHTTP](/src/target/middleware.go?s=1528:1598#L41)
 ``` go
 func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request)
 ```
@@ -137,9 +135,9 @@ Log lines are produced as per:
 
 	sample-app2017/05/12 11:34:44 middleware.go:67: {"duration":"32.995µs","ip_address":"[::1]:63841","request_id":"dddb1267-166d-46c0-94d4-3f4f2ceed1f7","status":"200","url":"/"}
 
-where `sample-app' is the 'app' string passed into NewMiddleware()
+where `sample-app` is the 'app' string passed into NewMiddleware()
 
-These logs are written to STDOUT
+These logs are written to `STDOUT`
 
 
 
