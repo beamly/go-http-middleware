@@ -30,10 +30,10 @@ type logEntry struct {
 
 // NewMiddleware takes an http handler and an 'app' name
 // to wrap and returns mutable Middleware object
-func NewMiddleware(h http.Handler, app string) *Middleware {
+func NewMiddleware(h http.Handler) *Middleware {
 	return &Middleware{
 		handler: h,
-		logger:  log.New(os.Stdout, app, log.LstdFlags|log.LUTC|log.Lshortfile),
+		logger:  log.New(os.Stdout, "", 0),
 	}
 }
 
