@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	m := middleware.NewMiddleware(API{}, "sample-app")
+	m := middleware.NewMiddleware(API{})
 	http.Handle("/", m)
 	panic(http.ListenAndServe(":8008", nil))
 }
