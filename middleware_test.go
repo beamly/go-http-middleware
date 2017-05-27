@@ -95,6 +95,23 @@ func TestServeHTTP(t *testing.T) {
 					}
 				})
 			})
+
+			t.Run("counters", func(t *testing.T) {
+				v, ok := m.Requests["https://user@example.com"]
+
+				t.Run("creates a request counter", func(t *testing.T) {
+					if !ok {
+						t.Errorf("No request counter was created with URL %q", TestURL)
+					}
+				})
+
+				t.Run("has a request counter containing exactly one hit", func(t *testing.T) {
+					if v.Value() != 1 {
+						t.Errorf("expected '1', received '%d'", v.Value)
+					}
+				})
+
+			})
 		})
 	}
 }
