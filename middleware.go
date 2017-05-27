@@ -28,7 +28,7 @@ type logEntry struct {
 	URL       string    `json:"url"`
 }
 
-// NewMiddleware takes an http handler and an 'app' name
+// NewMiddleware takes an http handler
 // to wrap and returns mutable Middleware object
 func NewMiddleware(h http.Handler) *Middleware {
 	return &Middleware{
@@ -44,7 +44,7 @@ func NewMiddleware(h http.Handler) *Middleware {
 // information which we absolutely need.
 //
 // Log lines are produced as per:
-//   sample-app2017/05/12 11:34:44 middleware.go:67: {"duration":"32.995µs","ip_address":"[::1]:63841","request_id":"dddb1267-166d-46c0-94d4-3f4f2ceed1f7","status":"200","url":"/"}
+//   {"duration":"394.823µs","ip_address":"[::1]:62405","request_id":"80d1b249-0b43-4adc-9456-e42e0b942ec0","status":200,"time":"2017-05-27T14:57:48.750350842+01:00","url":"/"}
 // where `sample-app` is the 'app' string passed into NewMiddleware()
 //
 // These logs are written to `STDOUT`

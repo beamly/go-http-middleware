@@ -23,7 +23,7 @@ A simple implementation would look like:
   )
 
   func main() {
-          m := middleware.NewMiddleware(API{}, "sample-app")
+          m := middleware.NewMiddleware(API{})
           http.Handle("/", m)
           panic(http.ListenAndServe(":8008", nil))
   }
@@ -35,8 +35,7 @@ A simple implementation would look like:
   }
 
 A request to `localhost:8008` would then log out:
-
-  sample-app2017/05/12 11:45:54 middleware.go:86: {"duration":"56.581µs","ip_address":"[::1]:63985","request_id":"abb0969e-0879-4838-bb5f-3c018f34ab17","status":200,"time":"2017-05-12T12:45:54.1477631+01:00","url":"/"}
+  {"duration":"34.679µs","ip_address":"[::1]:62865","request_id":"1a3d633b-69c3-4131-9f5b-93274e8c39ae","status":200,"time":"2017-05-27T15:23:33.437735653+01:00","url":"/"}
 
 With the response:
 
@@ -54,8 +53,6 @@ With the response:
   Content-Type: text/plain; charset=utf-8
   < X-Request-Id: 72c2b7aa-3bcb-478f-8724-66f38cd3abc0
   X-Request-Id: 72c2b7aa-3bcb-478f-8724-66f38cd3abc0
-  < Date: Fri, 12 May 2017 11:55:13 GMT
-  Date: Fri, 12 May 2017 11:55:13 GMT
   < Content-Length: 10
   Content-Length: 10
 
