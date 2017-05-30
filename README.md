@@ -33,7 +33,7 @@ A simple implementation would look like:
 	)
 	
 	func main() {
-	        m := middleware.NewMiddleware(API{}, "sample-app")
+	        m := middleware.NewMiddleware(API{})
 	        http.Handle("/", m)
 	        panic(http.ListenAndServe(":8008", nil))
 	}
@@ -47,7 +47,7 @@ A simple implementation would look like:
 A request to `localhost:8008` would then log out:
 
 
-	sample-app2017/05/12 11:45:54 middleware.go:86: {"duration":"56.581µs","ip_address":"[::1]:63985","request_id":"abb0969e-0879-4838-bb5f-3c018f34ab17","status":200,"time":"2017-05-12T12:45:54.1477631+01:00","url":"/"}
+	{"duration":"34.679µs","ip_address":"[::1]:62865","request_id":"1a3d633b-69c3-4131-9f5b-93274e8c39ae","status":200,"time":"2017-05-27T15:23:33.437735653+01:00","url":"/"}
 
 With the response:
 
@@ -66,8 +66,6 @@ With the response:
 	Content-Type: text/plain; charset=utf-8
 	< X-Request-Id: 72c2b7aa-3bcb-478f-8724-66f38cd3abc0
 	X-Request-Id: 72c2b7aa-3bcb-478f-8724-66f38cd3abc0
-	< Date: Fri, 12 May 2017 11:55:13 GMT
-	Date: Fri, 12 May 2017 11:55:13 GMT
 	< Content-Length: 10
 	Content-Length: 10
 	
@@ -82,7 +80,7 @@ With the response:
 
 ## <a name="pkg-index">Index</a>
 * [type Middleware](#Middleware)
-  * [func NewMiddleware(h http.Handler, app string) *Middleware](#NewMiddleware)
+  * [func NewMiddleware(h http.Handler) *Middleware](#NewMiddleware)
   * [func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request)](#Middleware.ServeHTTP)
 
 
@@ -109,18 +107,18 @@ it's self. It, by and large, wraps our handlers and loggers
 
 
 
-### <a name="NewMiddleware">func</a> [NewMiddleware](/src/target/middleware.go?s=695:753#L23)
+### <a name="NewMiddleware">func</a> [NewMiddleware](/src/target/middleware.go?s=677:723#L23)
 ``` go
-func NewMiddleware(h http.Handler, app string) *Middleware
+func NewMiddleware(h http.Handler) *Middleware
 ```
-NewMiddleware takes an http handler and an 'app' name
+NewMiddleware takes an http handler
 to wrap and returns mutable Middleware object
 
 
 
 
 
-### <a name="Middleware.ServeHTTP">func</a> (\*Middleware) [ServeHTTP](/src/target/middleware.go?s=1528:1598#L41)
+### <a name="Middleware.ServeHTTP">func</a> (\*Middleware) [ServeHTTP](/src/target/middleware.go?s=1457:1527#L41)
 ``` go
 func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request)
 ```
@@ -133,7 +131,7 @@ information which we absolutely need.
 Log lines are produced as per:
 
 
-	sample-app2017/05/12 11:34:44 middleware.go:67: {"duration":"32.995µs","ip_address":"[::1]:63841","request_id":"dddb1267-166d-46c0-94d4-3f4f2ceed1f7","status":"200","url":"/"}
+	{"duration":"394.823µs","ip_address":"[::1]:62405","request_id":"80d1b249-0b43-4adc-9456-e42e0b942ec0","status":200,"time":"2017-05-27T14:57:48.750350842+01:00","url":"/"}
 
 where `sample-app` is the 'app' string passed into NewMiddleware()
 
