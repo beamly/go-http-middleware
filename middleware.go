@@ -99,49 +99,54 @@ func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(status)
 	w.Write(resp)
 
-	duration := time.Now().Sub(t0).String()
+	// Do the rest asynchronously; there's no point blocking threads/ connections
+	// further
 
-	// Log request
-	l := logEntry{
-		URL:       r.URL.String(),
-		Duration:  duration,
-		IPAddress: r.RemoteAddr,
-		RequestID: requestID,
-		Status:    rec.Code,
-		Time:      t0,
-	}
-	lOut, err := json.Marshal(l)
+	go func() {
+		duration := time.Now().Sub(t0).String()
 
-	if err == nil {
-		m.logger.Print(string(lOut))
-	} else {
-		m.logger.Printf("error marshaling log data: %q", err)
-	}
+		// Log request
+		l := logEntry{
+			URL:       r.URL.String(),
+			Duration:  duration,
+			IPAddress: r.RemoteAddr,
+			RequestID: requestID,
+			Status:    rec.Code,
+			Time:      t0,
+		}
+		lOut, err := json.Marshal(l)
 
-	// Counters
-	url := r.URL.String()
-	lock.RLock()
-	_, ok := m.Requests[url]
-	lock.RUnlock()
+		if err == nil {
+			m.logger.Print(string(lOut))
+		} else {
+			m.logger.Printf("error marshaling log data: %q", err)
+		}
 
-	if !ok {
-		// On uuids: during development it became obvious that there were possible collisions/ unexpected behaviour
-		// around how we store counters.
-		// Because we don't know all of the routes exposed, and as such we can't preallocate counters, we store them
-		// in a map against route names. This allows us to point to the correct counter. It also means that should multiple
-		// *middleware.Middleware instances match the same route (say: an application listening on two ports exposing '/')
-		// then by not setting the counter as the route (or similarly computed value) we're not going to end up with both
-		// counters being merged into a single one.
-		//
-		// This was found during testing: initially storing counters named for their route, which expvar makes globally available,
-		// in a map, which is stored in an instanced *middleware.Middleware, meant that this function always fired and tried to
-		// redfine a counter that existed that `expvar`, in it's wisdom, bombed out on.
+		// Counters
+		url := r.URL.String()
+		lock.RLock()
+		_, ok := m.Requests[url]
+		lock.RUnlock()
+
+		if !ok {
+			// On uuids: during development it became obvious that there were possible collisions/ unexpected behaviour
+			// around how we store counters.
+			// Because we don't know all of the routes exposed, and as such we can't preallocate counters, we store them
+			// in a map against route names. This allows us to point to the correct counter. It also means that should multiple
+			// *middleware.Middleware instances match the same route (say: an application listening on two ports exposing '/')
+			// then by not setting the counter as the route (or similarly computed value) we're not going to end up with both
+			// counters being merged into a single one.
+			//
+			// This was found during testing: initially storing counters named for their route, which expvar makes globally available,
+			// in a map, which is stored in an instanced *middleware.Middleware, meant that this function always fired and tried to
+			// redfine a counter that existed that `expvar`, in it's wisdom, bombed out on.
+			lock.Lock()
+			m.Requests[url] = expvar.NewInt(uuid.NewV4().String())
+			lock.Unlock()
+		}
+
 		lock.Lock()
-		m.Requests[url] = expvar.NewInt(uuid.NewV4().String())
+		m.Requests[url].Add(1)
 		lock.Unlock()
-	}
-
-	lock.Lock()
-	m.Requests[url].Add(1)
-	lock.Unlock()
+	}()
 }

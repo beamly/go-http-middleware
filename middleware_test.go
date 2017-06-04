@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
 const (
@@ -74,9 +75,18 @@ func TestServeHTTP(t *testing.T) {
 			})
 
 			t.Run("log", func(t *testing.T) {
+				// Because we go func out for logging and metrics and so on, there is
+				// a very real condition where our request returns before logs are written.
+				//
+				// This is super important for speeding up responses, but is a bit rubbish
+				// for testing log output. Thus: we cripple our tests (which is infinitely
+				// preferable to crippling response times) by having a little sleep here.
+				// We could improve this by waiting and timing out, of course.
+				time.Sleep(500 * time.Millisecond)
+
 				t.Run("has data", func(t *testing.T) {
 					if len(logWriter.body) == 0 {
-						t.Errorf("Nothing was logged")
+						t.Errorf("Nothing was logged within 500ms of response")
 					}
 				})
 
