@@ -79,22 +79,68 @@ With the response:
 
 
 ## <a name="pkg-index">Index</a>
+* [type LogEntry](#LogEntry)
+* [type Loggable](#Loggable)
 * [type Middleware](#Middleware)
   * [func NewMiddleware(h http.Handler) *Middleware](#NewMiddleware)
+  * [func (m *Middleware) AddLogger(l Loggable)](#Middleware.AddLogger)
   * [func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request)](#Middleware.ServeHTTP)
 
 
 #### <a name="pkg-files">Package files</a>
-[doc.go](/src/github.com/zeebox/go-http-middleware/doc.go) [middleware.go](/src/github.com/zeebox/go-http-middleware/middleware.go) 
+[default_logger.go](/src/github.com/zeebox/go-http-middleware/default_logger.go) [doc.go](/src/github.com/zeebox/go-http-middleware/doc.go) [middleware.go](/src/github.com/zeebox/go-http-middleware/middleware.go) 
 
 
 
 
 
 
-## <a name="Middleware">type</a> [Middleware](/src/target/middleware.go?s=265:334#L7)
+## <a name="LogEntry">type</a> [LogEntry](/src/target/middleware.go?s=722:973#L27)
+``` go
+type LogEntry struct {
+    Duration  string    `json:"duration"`
+    IPAddress string    `json:"ip_address"`
+    RequestID string    `json:"request_id"`
+    Status    int       `json:"status"`
+    Time      time.Time `json:"time"`
+    URL       string    `json:"url"`
+}
+```
+LogEntry holds a particular requests data, metadata
+
+
+
+
+
+
+
+
+
+
+## <a name="Loggable">type</a> [Loggable](/src/target/middleware.go?s=623:665#L22)
+``` go
+type Loggable interface {
+    Log(LogEntry)
+}
+```
+Loggable is an interface designed to.... log out
+
+
+
+
+
+
+
+
+
+
+## <a name="Middleware">type</a> [Middleware](/src/target/middleware.go?s=313:569#L12)
 ``` go
 type Middleware struct {
+
+    // Requests contains a hit counter for each route, minus sensitive data like passwords
+    // it is exported for use in telemetry and monitoring endpoints.
+    Requests map[string]*expvar.Int
     // contains filtered or unexported fields
 }
 ```
@@ -107,7 +153,7 @@ it's self. It, by and large, wraps our handlers and loggers
 
 
 
-### <a name="NewMiddleware">func</a> [NewMiddleware](/src/target/middleware.go?s=677:723#L23)
+### <a name="NewMiddleware">func</a> [NewMiddleware](/src/target/middleware.go?s=1063:1109#L38)
 ``` go
 func NewMiddleware(h http.Handler) *Middleware
 ```
@@ -118,7 +164,18 @@ to wrap and returns mutable Middleware object
 
 
 
-### <a name="Middleware.ServeHTTP">func</a> (\*Middleware) [ServeHTTP](/src/target/middleware.go?s=1457:1527#L41)
+### <a name="Middleware.AddLogger">func</a> (\*Middleware) [AddLogger](/src/target/middleware.go?s=1391:1433#L50)
+``` go
+func (m *Middleware) AddLogger(l Loggable)
+```
+AddLogger takes anything which implements the Loggable interface
+and appends it to the Middleware log list which is then used
+to log stuff out
+
+
+
+
+### <a name="Middleware.ServeHTTP">func</a> (\*Middleware) [ServeHTTP](/src/target/middleware.go?s=2125:2195#L65)
 ``` go
 func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request)
 ```
