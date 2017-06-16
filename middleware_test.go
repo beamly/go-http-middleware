@@ -60,7 +60,7 @@ func TestServeHTTP(t *testing.T) {
 			m := NewMiddleware(test.handler)
 
 			logWriter := &TestWriter{}
-			m.logger.SetOutput(logWriter)
+			m.loggers[0].(defaultLogger).output.SetOutput(logWriter)
 
 			rec := httptest.NewRecorder()
 			m.ServeHTTP(rec, test.r)

@@ -3,11 +3,9 @@ package middleware
 import (
 	"encoding/json"
 	"expvar"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -23,14 +21,20 @@ var (
 // it's self. It, by and large, wraps our handlers and loggers
 type Middleware struct {
 	handler http.Handler
-	logger  *log.Logger
+	loggers []Loggable
 
 	// Requests contains a hit counter for each route, minus sensitive data like passwords
 	// it is exported for use in telemetry and monitoring endpoints.
 	Requests map[string]*expvar.Int
 }
 
-type logEntry struct {
+// Loggable is an interface designed to.... log out
+type Loggable interface {
+	Log(LogEntry)
+}
+
+// LogEntry holds a particular requests data, metadata
+type LogEntry struct {
 	Duration  string    `json:"duration"`
 	IPAddress string    `json:"ip_address"`
 	RequestID string    `json:"request_id"`
@@ -44,10 +48,17 @@ type logEntry struct {
 func NewMiddleware(h http.Handler) *Middleware {
 	return &Middleware{
 		handler: h,
-		logger:  log.New(os.Stdout, "", 0),
+		loggers: []Loggable{newDefaultLogger()},
 
 		Requests: make(map[string]*expvar.Int),
 	}
+}
+
+// AddLogger takes anything which implements the Loggable interface
+// and appends it to the Middleware log list which is then used
+// to log stuff out
+func (m *Middleware) AddLogger(l Loggable) {
+	m.loggers = append(m.loggers, l)
 }
 
 // ServeHTTP wraps our requests and produces useful log lines.
@@ -106,7 +117,7 @@ func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		duration := time.Now().Sub(t0).String()
 
 		// Log request
-		l := logEntry{
+		l := LogEntry{
 			URL:       r.URL.String(),
 			Duration:  duration,
 			IPAddress: r.RemoteAddr,
@@ -114,12 +125,9 @@ func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Status:    rec.Code,
 			Time:      t0,
 		}
-		lOut, err := json.Marshal(l)
 
-		if err == nil {
-			m.logger.Print(string(lOut))
-		} else {
-			m.logger.Printf("error marshaling log data: %q", err)
+		for _, logger := range m.loggers {
+			go logger.Log(l)
 		}
 
 		// Counters
