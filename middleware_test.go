@@ -117,7 +117,7 @@ func TestServeHTTP(t *testing.T) {
 
 				t.Run("has a request counter containing exactly one hit", func(t *testing.T) {
 					if v.Value() != 1 {
-						t.Errorf("expected '1', received '%d'", v.Value)
+						t.Errorf("expected '1', received '%d'", v.Value())
 					}
 				})
 

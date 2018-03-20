@@ -17,6 +17,17 @@ var (
 	lock = sync.RWMutex{}
 )
 
+const (
+	// This is a v5 UUID generated against the DNS namespace
+	// The prescence of this UUID in logs means that UUID generation is broken-
+	// specifically that https://golang.org/pkg/crypto/rand/#Read is returning
+	// an error.
+	//
+	// The URL used to seed this UUID is james-is-great.beamly.com. This domain
+	// does not exist and is, thus, safe to use.
+	DefaultBrokenUUID = "cd9bbcae-e076-549f-82bf-a08e8c838dd3"
+)
+
 // Middleware handles and stores state for the middleware
 // it's self. It, by and large, wraps our handlers and loggers
 type Middleware struct {
@@ -77,8 +88,8 @@ func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	status := 200
 
 	rec := httptest.NewRecorder()
-	requestID := uuid.NewV4().String()
 
+	requestID := newUUID()
 	t0 := time.Now()
 
 	if strings.HasSuffix(r.URL.String(), "/__/counters") {
@@ -149,7 +160,7 @@ func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// in a map, which is stored in an instanced *middleware.Middleware, meant that this function always fired and tried to
 			// redfine a counter that existed that `expvar`, in it's wisdom, bombed out on.
 			lock.Lock()
-			m.Requests[url] = expvar.NewInt(uuid.NewV4().String())
+			m.Requests[url] = expvar.NewInt(newUUID())
 			lock.Unlock()
 		}
 
@@ -157,4 +168,13 @@ func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		m.Requests[url].Add(1)
 		lock.Unlock()
 	}()
+}
+
+func newUUID() string {
+	u, err := uuid.NewV4()
+	if err != nil {
+		return DefaultBrokenUUID
+	}
+
+	return u.String()
 }
