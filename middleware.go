@@ -46,12 +46,13 @@ type Loggable interface {
 
 // LogEntry holds a particular requests data, metadata
 type LogEntry struct {
-	Duration  string    `json:"duration"`
-	IPAddress string    `json:"ip_address"`
-	RequestID string    `json:"request_id"`
-	Status    int       `json:"status"`
-	Time      time.Time `json:"time"`
-	URL       string    `json:"url"`
+	Duration   string    `json:"duration"`
+	DurationMS float64   `json:"duration_ms"`
+	IPAddress  string    `json:"ip_address"`
+	RequestID  string    `json:"request_id"`
+	Status     int       `json:"status"`
+	Time       time.Time `json:"time"`
+	URL        string    `json:"url"`
 }
 
 // NewMiddleware takes an http handler
@@ -125,16 +126,17 @@ func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// further
 
 	go func() {
-		duration := time.Now().Sub(t0).String()
+		duration := time.Now().Sub(t0)
 
 		// Log request
 		l := LogEntry{
-			URL:       r.URL.String(),
-			Duration:  duration,
-			IPAddress: r.RemoteAddr,
-			RequestID: requestID,
-			Status:    rec.Code,
-			Time:      t0,
+			Duration:   duration.String(),
+			DurationMS: float64(duration / time.Millisecond),
+			IPAddress:  r.RemoteAddr,
+			RequestID:  requestID,
+			Status:     rec.Code,
+			Time:       t0,
+			URL:        r.URL.String(),
 		}
 
 		for _, logger := range m.loggers {
