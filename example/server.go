@@ -9,6 +9,14 @@ import (
 
 func main() {
 	m := middleware.NewMiddleware(API{})
+
+	fileLogger, err := NewFileLogger("./access.log")
+	if err != nil {
+		panic(err)
+	}
+
+	m.AddLogger(fileLogger)
+
 	http.Handle("/", m)
 	panic(http.ListenAndServe(":8008", nil))
 }
