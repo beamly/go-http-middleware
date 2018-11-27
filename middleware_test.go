@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/valyala/fasthttp"
 )
 
 const (
@@ -44,6 +46,43 @@ func (w *TestWriter) Write(p []byte) (n int, err error) {
 	}
 
 	return
+}
+
+type FHAPI struct{}
+
+func (a FHAPI) Handle(ctx *fasthttp.RequestCtx) {
+	ctx.SetStatusCode(fasthttp.StatusTeapot)
+
+	fmt.Fprintf(ctx, TestResponseBody)
+}
+
+type EmptyInterface struct{}
+
+func TestNew(t *testing.T) {
+	for _, test := range []struct {
+		name        string
+		handler     interface{}
+		expectError bool
+	}{
+		{"Valid http.Handler", TestAPI{}, false},
+		{"Valid FasthttpHandler", FHAPI{}, false},
+		{"Dodgy handler", EmptyInterface{}, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			defer func() {
+				err := recover()
+				if test.expectError && err == nil {
+					t.Errorf("expected error")
+				}
+
+				if !test.expectError && err != nil {
+					t.Errorf("unexpected error: %+v", err)
+				}
+			}()
+
+			New(test.handler)
+		})
+	}
 }
 
 func TestServeHTTP(t *testing.T) {
@@ -122,6 +161,39 @@ func TestServeHTTP(t *testing.T) {
 				})
 
 			})
+		})
+	}
+}
+
+func TestServeFastHTTP(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		handler FasthttpHandler
+		url     string
+		expect  int
+	}{
+		{"happy path", FHAPI{}, "/", 418},
+		{"counters", FHAPI{}, "/__/counters", 200},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			m := NewMiddleware(test.handler)
+
+			req := fasthttp.AcquireRequest()
+			req.SetRequestURI(test.url)
+			req.Header.SetMethod("GET")
+
+			resp := fasthttp.AcquireResponse()
+
+			c := &fasthttp.RequestCtx{
+				Request:  *req,
+				Response: *resp,
+			}
+
+			m.ServeFastHTTP(c)
+			s := c.Response.StatusCode()
+			if test.expect != s {
+				t.Errorf("expected status %d, received %d", test.expect, s)
+			}
 		})
 	}
 }
