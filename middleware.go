@@ -63,6 +63,7 @@ type LogEntry struct {
 	Status     int       `json:"status"`
 	Time       time.Time `json:"time"`
 	URL        string    `json:"url"`
+	UserAgent  string    `json:"useragent"`
 }
 
 // NewMiddleware takes either:
@@ -148,7 +149,7 @@ func (m *Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Do the rest asynchronously; there's no point blocking threads/ connections
 	// further
 
-	go m.log(requestID, t0, r.RemoteAddr, rec.Code, r.URL.String())
+	go m.log(requestID, t0, r.RemoteAddr, rec.Code, r.URL.String(), r.UserAgent())
 }
 
 // ServeFastHTTP wraps our fasthttp requests and produces useful log lines.
@@ -175,7 +176,7 @@ func (m *Middleware) ServeFastHTTP(ctx *fasthttp.RequestCtx) {
 	// Do the rest asynchronously; there's no point blocking threads/ connections
 	// further
 
-	go m.log(requestID, ctx.ConnTime(), ctx.RemoteAddr().String(), ctx.Response.StatusCode(), ctx.URI().String())
+	go m.log(requestID, ctx.ConnTime(), ctx.RemoteAddr().String(), ctx.Response.StatusCode(), ctx.URI().String(), string(ctx.UserAgent()))
 }
 
 func (m *Middleware) counters() (resp []byte) {
@@ -189,7 +190,7 @@ func (m *Middleware) counters() (resp []byte) {
 	return
 }
 
-func (m *Middleware) log(requestID string, t0 time.Time, addr string, status int, url string) {
+func (m *Middleware) log(requestID string, t0 time.Time, addr string, status int, url string, ua string) {
 	duration := time.Now().Sub(t0)
 
 	// Log request
@@ -201,6 +202,7 @@ func (m *Middleware) log(requestID string, t0 time.Time, addr string, status int
 		Status:     status,
 		Time:       t0,
 		URL:        url,
+		UserAgent:  ua,
 	}
 
 	for _, logger := range m.loggers {
